@@ -1,26 +1,46 @@
-#настройка pre-commit хука с иcпользованием (flake8, mypy, isort, black, pylint)
-
 repos:
-  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
-      rev: v2.4.0
-      hooks:
-        # проверяет наличие переноса строки в конце всех текстовых файлов
-        - id: end-of-file-fixer
-        # предупреждает о добавлении больших файлов в Git
-        - id: check-added-large-files
-        # предупреждает о сохранении файлов с UTF-8 BOM
-        - id: check-byte-order-marker
-        # предотвращает сохранение приватных ключей
-        - id: detect-private-key
-        # проверяет, что файлы, которые мы собираемся сохранять, как минимум валидный Python
-        - id: check-ast
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+      - id: end-of-file-fixer # wrap at end of file
+      - id: check-added-large-files
+      - id: check-byte-order-marker
+      - id: detect-private-key
+      - id: check-ast
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 24.8.0
     hooks:
       - id: black
-        language_version: python3.12.1
+      - language_version: python3.12.1
+      - description: "Black: The uncompromising Python code formatter"
+      - minimum_pre_commit_version: 2.9.2
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 5.13.0
     hooks:
       - id: isort
-        name: isort (python)
+      - name: isort
+      - language: python
+      - description: 'Sort imports'
+  - repo: https://github.com/python/mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+      - name: mypy
+      - description: 'Type checkers help ensure that you’re using variables and functions in your code correctly'
+      - language: python
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-bugbear
+      - name: flake8
+      - description: 'flake8` is a command-line utility for enforcing style consistency across Python projects.'
+      - language: python
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.3.1
+    hooks:
+      - id: pylint
+      - name: pylint
+      - description: 'It checks for errors, enforces a coding standard, looks for code smells, and can make suggestions about how the code could be refactored.'
+      - language: python
