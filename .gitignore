@@ -202,3 +202,5 @@ fabric.properties
 # idea folder, uncomment if you don't need it
 # .idea
 todo/todo/__pycache__/
+todo/accounts/__pycache__/
+todo/main/__pycache__/
