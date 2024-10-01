@@ -16,4 +16,6 @@ RUN poetry install --no-root
 
 COPY . .
 
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD  ["poetry", "run", "python", "todo/manage.py", "runserver", "0.0.0.0:8000"]

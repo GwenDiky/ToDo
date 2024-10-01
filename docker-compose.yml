@@ -30,6 +30,8 @@ services:
     container_name: pgdb_new
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
 
   redis:
@@ -42,6 +44,34 @@ services:
           max-size: "10m"  # max size of log's file
           max-file: "3"    # max count of log's files
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./rabbitmq-data:/var/lib/rabbitmq/
+      - ./rabbitmq-log:/var/log/rabbitmq
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: [ 'celery', 'worker', '-A', 'app.app', '-l', 'info' ]
+    environment:
+      - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
+      - RESULT_BACKEND=redis://redis:6379/0
+      - C_FORCE_ROOT=true
+    volumes:
+      - ./:/app/
+    depends_on:
+      - rabbitmq
+      - redis
 
 volumes:
     postgres-data:
