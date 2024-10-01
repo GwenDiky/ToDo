@@ -77,7 +77,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
+        'HOST': 'pgdb_new',
         'PORT': os.getenv('DB_PORT'),
         "OPTIONS": {
             "options": "-c client_encoding=utf8"
