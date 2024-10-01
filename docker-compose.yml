@@ -1,0 +1,48 @@
+version: '3.7'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: "web"
+    restart: always
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    depends_on:
+      - pgdb
+      - redis
+
+  pgdb:
+    image: postgres
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    container_name: pgdb_new
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+
+  redis:
+    image: redis:alpine
+    expose:
+      - 6379
+    logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"  # max size of log's file
+          max-file: "3"    # max count of log's files
+
+
+volumes:
+    postgres-data:
+    redis-data:
