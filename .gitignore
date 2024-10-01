@@ -204,3 +204,8 @@ fabric.properties
 todo/todo/__pycache__/
 todo/accounts/__pycache__/
 todo/main/__pycache__/
+
+
+#rabbitmq
+rabbitmq-data/
+rabbitmq-log/

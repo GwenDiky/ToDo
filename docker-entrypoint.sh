@@ -1,15 +1,17 @@
 #!/bin/sh
 
-echo "Waiting for postgres..."
+# process signals
+trap 'exit' INT TERM
+trap 'kill 0' EXIT
 
-while ! nc -z db 5432; do
+echo "Waiting for PostgreSQL..."
+while ! nc -z pgdb 5432; do
   sleep 0.1
 done
+echo "Done with PostgreSQL"
 
-echo "PostgreSQL started"
+echo "Running migrations with poetry"
+poetry run python todo/manage.py migrate
+echo "Done with migrations"
 
-python manage.py flush --no-input
-# PGPASSWORD=djangoproject psql --host db --port 5432 --username=code.djangoproject --dbname=code.djangoproject < tracdb/trac.sql
-python manage.py migrate
-
-exec "$@"
+exec poetry run python todo/manage.py runserver 0.0.0.0:8000
