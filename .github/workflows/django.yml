@@ -58,7 +58,6 @@ jobs:
     
     - name: Make Migrations
       run: |
-        python todo/manage.py makemigrations
         python todo/manage.py migrate
         echo "Migrations completed successfully"
     
