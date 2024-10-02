@@ -47,16 +47,16 @@ jobs:
         pip install -r requirements.txt
         echo "Dependencies installed successfully"
     
-    - name: Wait for PostgreSQL
-      run: |
-        until pg_isready -h localhost -U postgres; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
+    # - name: Wait for PostgreSQL
+    #   run: |
+    #     until pg_isready -h localhost -U postgres; do
+    #       echo "Waiting for PostgreSQL..."
+    #       sleep 2
+    #     done
     
-    - name: Make Migrations
-      run: |
-        python todo/manage.py makemigrations
-        python todo/manage.py migrate
-        echo "Migrations completed successfully"
+    # - name: Make Migrations
+    #   run: |
+    #     python todo/manage.py makemigrations
+    #     python todo/manage.py migrate
+    #     echo "Migrations completed successfully"
     
