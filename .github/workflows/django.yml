@@ -22,6 +22,8 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: root
           POSTGRES_DB: todo_system
+          POSTGRES_ENGINE: django.db.backends.postgresql
+          DB_HOST: pgdb_new
         ports:
           - 5432:5432
         options: >-
@@ -54,9 +56,9 @@ jobs:
     #       sleep 2
     #     done
     
-    # - name: Make Migrations
-    #   run: |
-    #     python todo/manage.py makemigrations
-    #     python todo/manage.py migrate
-    #     echo "Migrations completed successfully"
+    - name: Make Migrations
+      run: |
+        python todo/manage.py makemigrations
+        python todo/manage.py migrate
+        echo "Migrations completed successfully"
     
