@@ -44,7 +44,6 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install poetry==1.8.2
-        poetry add django==5.1.1
         poetry install 
         echo "Dependencies installed successfully"
 
