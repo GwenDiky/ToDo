@@ -24,7 +24,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         
-    - uses: actions/action-setup-postgres@v6
+    - uses: ./
       with:
         username: postgres
         password: root
