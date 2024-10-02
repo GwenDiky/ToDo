@@ -40,11 +40,6 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Activate virtual environment
-      run: |
-        source $(poetry env info --path)/bin/activate
-        echo "Virtual environment activated"
         
     - name: Install Dependencies
       run: |
