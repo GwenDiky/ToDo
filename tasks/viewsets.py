@@ -39,12 +39,12 @@ class TaskViewSet(viewsets.ModelViewSet):
         else: raise NotAuthenticated("User is not authenticated.")
         return Task.objects.filter(user_id=user_id)
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, pk=None) -> response.Response:
         instance = self.get_object()
         return response.Response(self.serializer_class(instance).data,
                         status=status.HTTP_200_OK)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> response.Response:
         user = request.user
         data = request.data
         data.update({"user_id": user})
@@ -58,7 +58,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             return response.Response(data=serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_update(self, request, pk=None, *args, **kwargs):
+    def perform_update(self, request, pk=None, *args, **kwargs) -> (
+            response.Response):
         user = self.request.user
         instance = self.get_object()
         data = {"title": request.data.get('title', None),
@@ -100,7 +101,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             return response.Response(data=serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, pk=None, *args, **kwargs):
+    def destroy(self, request, pk=None, *args, **kwargs) -> response.Response:
         instance = self.get_object()
         if self.request.user == instance.user_id:
             super(TaskViewSet, self).destroy(request, pk, *args,
