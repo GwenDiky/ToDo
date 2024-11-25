@@ -1,17 +1,25 @@
 #!/bin/sh
 
-# process signals
 trap 'exit' INT TERM
 trap 'kill 0' EXIT
 
-echo "Waiting for PostgreSQL..."
-while ! nc -z pgdb 5432; do
-  sleep 0.1
+echo "Waiting for PostgreSQL to be ready..."
+
+until nc -z pgdb_new 5432; do
+  echo "Waiting for PostgreSQL..."
+  sleep 1
 done
-echo "Done with PostgreSQL"
 
-echo "Running migrations with poetry"
-poetry run python todo/manage.py migrate
-echo "Done with migrations"
+echo "PostgreSQL is ready."
 
-exec poetry run python todo/manage.py runserver 0.0.0.0:8000
+
+echo "Updating poetry.."
+poetry update
+
+echo "Running migrations with Poetry..."
+poetry run python manage.py makemigrations
+poetry run python manage.py migrate --noinput
+echo "Migrations done."
+
+echo "Starting Django application..."
+exec poetry run python manage.py runserver 0.0.0.0:8000

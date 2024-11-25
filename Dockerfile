@@ -3,7 +3,6 @@ FROM python:3.11.10-bullseye
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# install netcat
 RUN apt-get update && apt-get install -y netcat && apt-get clean
 
 RUN pip install poetry==1.8.2

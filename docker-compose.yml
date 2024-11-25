@@ -1,38 +1,40 @@
-version: '3.7'
-
 services:
   api:
     build:
       context: .
-      dockerfile: ./Dockerfile
-    container_name: "web"
-    restart: always
+      dockerfile: Dockerfile
+    container_name: "todo"
     volumes:
       - .:/app
     ports:
-      - "8080:8000"
+      - "8000:8000"
     environment:
       - PYTHONBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
     depends_on:
-      - pgdb
+      - pgdb_new
       - redis
+    networks:
+      - shared_network
+    env_file:
+      - .env
 
-  pgdb:
+  pgdb_new:
     image: postgres
     restart: always
-    expose:
-      - "5432"
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     container_name: pgdb_new
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-2:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-
+      - "5433:5432"
+    networks:
+      - shared_network
+    env_file:
+      - .env
 
   redis:
     image: redis:alpine
@@ -41,23 +43,82 @@ services:
     logging:
         driver: "json-file"
         options:
-          max-size: "10m"  # max size of log's file
-          max-file: "3"    # max count of log's files
+          max-size: "10m"
+          max-file: "3"
+    env_file:
+      - .env
 
-  rabbitmq:
-    image: rabbitmq:4.0.2-management-alpine
-    container_name: 'rabbitmq'
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+  celery:
+    build:
+      context: .
+    entrypoint: ./docker-entrypoint-celery.sh
     volumes:
-      - ./rabbitmq-data:/var/lib/rabbitmq/
-      - ./rabbitmq-log:/var/log/rabbitmq
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - .:/app/:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=dbaa1_i7%*3r9-=z-+_mz4r-!qeed@(-a_r(g@k8jo8y3r27%m
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+    depends_on:
+      - redis
+    networks:
+      - shared_network
+    env_file:
+      - .env
+
+  celery-beat:
+    build:
+      context: .
+    entrypoint: ./docker-entrypoint-celery-beat.sh
+    volumes:
+      - .:/app/:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=dbaa1_i7%*3r9-=z-+_mz4r-!qeed@(-a_r(g@k8jo8y3r27%m
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+    depends_on:
+      - redis
+    networks:
+      - shared_network
+    env_file:
+      - .env
+
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - shared_network
+
+  kafka:
+    image: 'bitnami/kafka:3.3.2-debian-11-r183'
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ADVERTISED_HOST=localhost
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list" ]
+      interval: 5s
+      retries: 10
+    depends_on:
+      - zookeeper
+    networks:
+      - shared_network
+    env_file:
+      - .env
+
 volumes:
-    postgres-data:
-    redis-data:
+  postgres-data-2:
+  redis-data:
+
+networks:
+  shared_network:
+    external: true

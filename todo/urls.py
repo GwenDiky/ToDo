@@ -1,22 +1,46 @@
-"""
-URL configuration for todo project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from tasks.urls import router as tasks_router
+from projects.urls import router as projects_router
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework.permissions import AllowAny
+from rest_framework.routers import DefaultRouter
+
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+swagger_view = get_schema_view(
+    openapi.Info(
+        title="Tasks API",
+        default_version='v1',
+        description="API for tasks & projects",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@tasks.local"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=(AllowAny,),
+    authentication_classes=[],
+)
+
+main_router = DefaultRouter()
+main_router.registry.extend(tasks_router.registry)
+main_router.registry.extend(projects_router.registry)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
+    path("api/", include(main_router.urls)),
+    path('swagger/', swagger_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+
+
+# urlpatterns = [
+#     path('task/<int:task_id>/invite/', send_invitation_email, name='send_invitation'),
+#     path('invite/confirm/<int:task_id>/<uuid:token>/', confirm_invitation, name='confirm_invitation'),
+# ]
