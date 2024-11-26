@@ -18,7 +18,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['title', 'body', 'status', 'deadline', 'notification',
-                  'project', 'deadline', 'user_id']
+                  'project', 'user_id']
 
     def create(self, validated_data):
         project_data = validated_data.pop("project", None)

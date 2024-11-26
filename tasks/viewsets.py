@@ -1,21 +1,21 @@
 import logging
-import os
-from uuid import uuid4
-import jwt
+
 from asgiref.sync import async_to_sync
-from django.core.mail import send_mail
-from django.shortcuts import render, redirect, reverse
+from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (viewsets, status, exceptions, permissions,
-                            response, authentication, filters as drf_filters)
+from rest_framework import (viewsets, status, response, filters as drf_filters)
+from rest_framework.exceptions import NotAuthenticated
 from tasks.api.v1 import serializers, utils, filters
+from tasks.api.v1.mail import Mail
 from tasks.models import Task
+from projects.models import Project
 from todo.viewsets import (StandardPaginationViewSet, IsAuthenticatedById,
                            JWTAuthenticationCustom)
-from django.db.models.query import QuerySet
-from rest_framework.exceptions import NotAuthenticated
+from asgiref.sync import async_to_sync
+from rest_framework.decorators import api_view
 
 logger = logging.getLogger(__name__)
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all().order_by("-created_at")
@@ -34,80 +34,91 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedById]
 
     def get_queryset(self) -> QuerySet[Task]:
-        if self.request.user.is_authenticated:
+        if self.request.user:
             user_id = self.request.user
-        else: raise NotAuthenticated("User is not authenticated.")
+        else:
+            raise NotAuthenticated("User is not authenticated.")
         return Task.objects.filter(user_id=user_id)
 
     def retrieve(self, request, pk=None) -> response.Response:
         instance = self.get_object()
         return response.Response(self.serializer_class(instance).data,
-                        status=status.HTTP_200_OK)
+                                 status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs) -> response.Response:
         user = request.user
         data = request.data
-        data.update({"user_id": user})
-        logger.info(f"id of current user: {user}")
+
+        if data.get("user_id"):
+            mail_of_recipient = async_to_sync(utils.get_email_of_user)(
+                user)
+
+            mail = Mail(
+                recipient=mail_of_recipient,
+                subject="U was invited to task. Hurry up!",
+            )
+            async_to_sync(mail.send_invitation_email)(
+                task=data.get("title"),
+                project=Project.objects.get(id=data.get("project"))
+            )
+        else: data.update({"user_id": user})
+
+        logger.info(f"Creating task for user {user}")
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
             return response.Response(data=serializer.data,
-                            status=status.HTTP_201_CREATED)
+                                     status=status.HTTP_201_CREATED)
         else:
             return response.Response(data=serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                                     status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_update(self, request, pk=None, *args, **kwargs) -> (
-            response.Response):
+    def partial_update(self, request, pk=None, *args,
+                       **kwargs) -> response.Response:
         user = self.request.user
         instance = self.get_object()
-        data = {"title": request.data.get('title', None),
-                "body": request.data.get('body', None),
-                "status": request.data.get('status', None),
-                "project": request.data.get('project', None),
-                "deadline": request.data.get('deadline', None),
-                "notification": request.data.get("notification", None)}
+        instance.user_id = user
+
+        data = request.data
+
         logger.info(
-            f"Change task with the title {data['title']}"
-        )
+            f"Changing task with title: {data.get('title', 'No title provided')}")
 
-        if request.data.get('status'):
-            logger.info(f"Status of task {instance.title} was changed.")
+        if 'status' in data:
+            if data['status'] != instance.status:
+                logger.info(
+                    f"Status of task '{instance.title}' changed from {instance.status} to {data['status']}")
+                if instance.notification:
+                    mail_of_recipient = async_to_sync(utils.get_email_of_user)(
+                        user)
+                    mail = Mail(
+                        recipient=mail_of_recipient,
+                        subject="Status of task changed. Hurry up!",
+                    )
+                    async_to_sync(mail.send_email_notification)(
+                        title_of_task=data['title'])
 
-
-        if (instance.notification and request.data.get('status') !=
-                instance.status):
-            mail_of_recipient = async_to_sync(utils.get_email_of_user)(user)
-            mail = mail.Mail(
-                recipient=mail_of_recipient,
-                subject="Status of task changed. Hurry up!",
-                body=f"Hello. The status of task {data['title']} changed to {data['status']}.",
-            )
-
-            logger.info(f"Working with the task: {data['title']}")
-            async_to_sync(mail.send_email_notification)(title_of_task=data[
-                'title'])
-
-        serializer = self.serializer_class(instance=instance,
-                                           data=data,
+        serializer = self.serializer_class(instance=instance, data=data,
                                            context={'author': user},
                                            partial=True)
+
         if serializer.is_valid():
+            logger.info(f"Valid data: {serializer.validated_data}")
             serializer.save()
             return response.Response(data=serializer.data,
-                            status=status.HTTP_201_CREATED)
+                                     status=status.HTTP_200_OK)
         else:
+            logger.error(f"Invalid data: {serializer.errors}")
             return response.Response(data=serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                                     status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk=None, *args, **kwargs) -> response.Response:
         instance = self.get_object()
         if self.request.user == instance.user_id:
             super(TaskViewSet, self).destroy(request, pk, *args,
-                                                       **kwargs)
+                                             **kwargs)
             return response.Response(data="Task was successfully deleted",
-                            status=status.HTTP_204_NO_CONTENT)
+                                     status=status.HTTP_204_NO_CONTENT)
         else:
             return response.Response(
                 data="Permission to task was denied",

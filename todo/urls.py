@@ -8,11 +8,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.routers import DefaultRouter
 
 
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
 swagger_view = get_schema_view(
     openapi.Info(
         title="Tasks API",
@@ -35,12 +30,4 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(main_router.urls)),
     path('swagger/', swagger_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
-
-
-# urlpatterns = [
-#     path('task/<int:task_id>/invite/', send_invitation_email, name='send_invitation'),
-#     path('invite/confirm/<int:task_id>/<uuid:token>/', confirm_invitation, name='confirm_invitation'),
-# ]

@@ -4,6 +4,9 @@ import os
 import aioboto3
 from django.template.loader import get_template
 
+from tasks.models import Task
+from projects.models import Project
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,10 +17,9 @@ class Mail:
     AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
     LOCALSTACK_ENDPOINT = os.getenv("LOCALSTACK_ENDPOINT")
 
-    def __init__(self, recipient, subject, body):
+    def __init__(self, recipient, subject):
         self.recipient = recipient
         self.subject = subject
-        self.body = body
         self.ses_client = None
         self.template = get_template("html/notification_of_deadlines.html")
         self._is_sender_verified = False
@@ -46,19 +48,20 @@ class Mail:
             except Exception as e:
                 logger.error(f"Error verifying sender: {e}")
 
-    async def send_email_notification(self, title_of_task):
-        """Send email notification using SES"""
+    async def send_email_notification(self, title_of_task: str = None,
+                                      template =
+        None):
         logger.info(
             f"Preparing to send email from {self.sender} to {self.recipient}")
 
-        # Render email template
-        template = self.template.render({"task": title_of_task})
+        if not template:
+            template = self.template.render({"task": title_of_task} if
+                                            title_of_task else None)
 
         try:
-            await self.init_ses_client()  # Ensure SES client is initialized
-            await self.verify_sender()  # Ensure sender is verified
+            await self.init_ses_client()
+            await self.verify_sender()
 
-            # Send the email
             response = await self.ses_client.send_email(
                 Source=self.sender,
                 Destination={"ToAddresses": [self.recipient]},
@@ -71,8 +74,24 @@ class Mail:
             return response
 
         except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}")
+            logger.error(f"Failed to send email: {str(e)}") # прописать
+            # кастомную ошибку
 
         finally:
             if self.ses_client:
                 await self.ses_client.close()
+
+    async def send_invitation_email(self, task: Task, project: Project):
+        logger.info(
+            f"Preparing to send email from {self.sender} to {self.recipient}")
+
+        self.template = get_template("html/invitation.html")
+        template = self.template.render(
+            {
+                "task": task.title,
+                "project": project.title,
+                "email_address_of_consumer": self.recipient,
+            }
+        )
+
+        await self.send_email_notification(template=template)

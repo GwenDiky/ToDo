@@ -209,3 +209,5 @@ todo_else/main/__pycache__/
 #rabbitmq
 rabbitmq-data/
 rabbitmq-log/
+
+todo/settings.py.orig

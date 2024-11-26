@@ -20,4 +20,4 @@ COPY docker-entrypoint.sh ./
 
 COPY . .
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
