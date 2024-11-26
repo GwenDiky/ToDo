@@ -2,8 +2,7 @@ import os
 
 import jwt
 from dotenv import load_dotenv
-from rest_framework import (exceptions, permissions,
-                            authentication)
+from rest_framework import exceptions, permissions, authentication
 from rest_framework.pagination import PageNumberPagination
 
 load_dotenv()

@@ -10,7 +10,7 @@ from tasks.urls import router as tasks_router
 swagger_view = get_schema_view(
     openapi.Info(
         title="Tasks API",
-        default_version='v1',
+        default_version="v1",
         description="API for tasks & projects",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@tasks.local"),
@@ -28,6 +28,9 @@ main_router.registry.extend(projects_router.registry)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(main_router.urls)),
-    path('swagger/', swagger_view.with_ui('swagger', cache_timeout=0),
-         name='swagger-docs'),
+    path(
+        "swagger/",
+        swagger_view.with_ui("swagger", cache_timeout=0),
+        name="swagger-docs",
+    ),
 ]

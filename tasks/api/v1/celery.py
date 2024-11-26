@@ -16,4 +16,4 @@ app = Celery("basicSetup")
 app.conf.enable_utc = False
 
 app.config_from_object(settings, namespace="CELERY")
-app.autodiscover_tasks(['tasks.api.v1.workers'])
+app.autodiscover_tasks(["tasks.api.v1.workers"])

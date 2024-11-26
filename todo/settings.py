@@ -92,8 +92,8 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [
-            os.path.join(BASE_DIR, 'tasks/templates'),
+        "DIRS": [
+            os.path.join(BASE_DIR, "tasks/templates"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -133,16 +133,16 @@ DATABASES = {
 }
 
 SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'in': 'header',
-            'name': 'Authorization',
-            'description': "Введите токен в формате: Bearer <JWT-token>",
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Введите токен в формате: Bearer <JWT-token>",
         },
     },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
+    "USE_SESSION_AUTH": False,
+    "JSON_EDITOR": True,
 }
 
 # Password validation
@@ -190,24 +190,24 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
         },
-        'todo': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+        "todo": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
         },
     },
 }

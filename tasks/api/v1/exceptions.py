@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 
+
 class EmailSendingFailedException(Exception):
     status_code = 500
     default_detail = "Failed to send email due to an internal error."

@@ -11,6 +11,5 @@ def validate_user_exists(user_id: str):
 
 def validate_if_superuser(user_id: str):
     with connections["user_db"].cursor() as cursor:
-        cursor.execute("SELECT is_superuser FROM users WHERE id = %s",
-                       [user_id])
+        cursor.execute("SELECT is_superuser FROM users WHERE id = %s", [user_id])
         return cursor.fetchone()

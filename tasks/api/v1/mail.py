@@ -28,11 +28,11 @@ class Mail:
         if not self.ses_client:
             session = aioboto3.Session()
             async with session.client(
-                    "ses",
-                    aws_access_key_id=self.AWS_ACCESS_KEY_ID,
-                    aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
-                    region_name=self.AWS_REGION_NAME,
-                    endpoint_url=self.LOCALSTACK_ENDPOINT,
+                "ses",
+                aws_access_key_id=self.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
+                region_name=self.AWS_REGION_NAME,
+                endpoint_url=self.LOCALSTACK_ENDPOINT,
             ) as client:
                 self.ses_client = client
 
@@ -49,15 +49,13 @@ class Mail:
                 logger.error(f"Error verifying sender: {e.detail}")
                 return e.as_response()
 
-    async def send_email_notification(self, title_of_task: str = None,
-                                      template=
-                                      None):
-        logger.info(
-            f"Preparing to send email from {self.sender} to {self.recipient}")
+    async def send_email_notification(self, title_of_task: str = None, template=None):
+        logger.info(f"Preparing to send email from {self.sender} to {self.recipient}")
 
         if not template:
-            template = self.template.render({"task": title_of_task} if
-                                            title_of_task else None)
+            template = self.template.render(
+                {"task": title_of_task} if title_of_task else None
+            )
 
         try:
             await self.init_ses_client()
@@ -83,8 +81,7 @@ class Mail:
                 await self.ses_client.close()
 
     async def send_invitation_email(self, task: Task, project: Project):
-        logger.info(
-            f"Preparing to send email from {self.sender} to {self.recipient}")
+        logger.info(f"Preparing to send email from {self.sender} to {self.recipient}")
 
         self.template = get_template("html/invitation.html")
         template = self.template.render(

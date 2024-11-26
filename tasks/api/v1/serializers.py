@@ -2,6 +2,7 @@ from projects.models import Project
 from rest_framework import serializers
 from tasks.models import Task
 
+
 class TaskSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(
         queryset=Project.objects.all(), required=False
@@ -10,8 +11,15 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['title', 'body', 'status', 'deadline', 'notification',
-                  'project', 'user_id']
+        fields = [
+            "title",
+            "body",
+            "status",
+            "deadline",
+            "notification",
+            "project",
+            "user_id",
+        ]
 
     def create(self, validated_data):
         project_data = validated_data.pop("project", None)

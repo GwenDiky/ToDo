@@ -2,8 +2,7 @@ import os
 
 import jwt
 from dotenv import load_dotenv
-from rest_framework import (exceptions, permissions,
-                            authentication)
+from rest_framework import exceptions, permissions, authentication
 from rest_framework.pagination import PageNumberPagination
 
 load_dotenv()
@@ -16,7 +15,7 @@ class IsAuthenticatedById(permissions.BasePermission):
 
 class JWTAuthenticationCustom(authentication.BaseAuthentication):
     def authenticate(self, request):
-        token = request.headers.get('Authorization')
+        token = request.headers.get("Authorization")
         if not token:
             return None
 
@@ -25,7 +24,7 @@ class JWTAuthenticationCustom(authentication.BaseAuthentication):
                 token,
                 os.getenv("JWT_SECRET"),
                 algorithms=[os.getenv("JWT_ALGORITHM")],
-                options={"verify_sub": False}
+                options={"verify_sub": False},
             )
         except jwt.ExpiredSignatureError:
             raise exceptions.AuthenticationFailed("Token has expired")

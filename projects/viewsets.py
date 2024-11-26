@@ -2,7 +2,7 @@ from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from projects.api.v1 import filters
 from projects.models import Project
-from rest_framework import (viewsets, filters as drf_filters)
+from rest_framework import viewsets, filters as drf_filters
 from rest_framework.exceptions import NotAuthenticated
 from tasks.api.v1 import serializers
 from todo.viewsets import StandardPaginationViewSet
@@ -15,8 +15,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
     pagination_class = StandardPaginationViewSet
 
-    filter_backends = (DjangoFilterBackend,
-                       drf_filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend, drf_filters.OrderingFilter)
 
     filterset_class = filters.ProjectFilter
     ordering_fields = ["title", "created_at"]
