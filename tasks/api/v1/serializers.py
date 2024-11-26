@@ -23,10 +23,6 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        project_data = validated_data.pop("project", None)
-        if project_data is not None:
-            task = Task.objects.create(**validated_data, project=project_data)
-        else:
-            task = Task.objects.create(**validated_data)
-
+        project = validated_data.pop("project", None)
+        task = Task.objects.create(**validated_data, project=project)
         return task

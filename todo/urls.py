@@ -8,7 +8,7 @@ from rest_framework.routers import DefaultRouter
 from projects.urls import router as projects_router
 from tasks.urls import router as tasks_router
 
-swagger_view = get_schema_view(
+SwaggerView = get_schema_view(
     openapi.Info(
         title="Tasks API",
         default_version="v1",
@@ -31,7 +31,7 @@ urlpatterns = [
     path("api/", include(main_router.urls)),
     path(
         "swagger/",
-        swagger_view.with_ui("swagger", cache_timeout=0),
+        SwaggerView.with_ui("swagger", cache_timeout=0),
         name="swagger-docs",
     ),
 ]

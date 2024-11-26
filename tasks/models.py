@@ -30,4 +30,4 @@ class Task(models.Model):
     )
 
     def __str__(self):
-        return self.title if self.title else "Untitled Task"
+        return str(self.title) if self.title else "Untitled Task"

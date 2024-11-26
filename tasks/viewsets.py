@@ -5,7 +5,6 @@ from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters as drf_filters
 from rest_framework import response, status, viewsets
-from rest_framework.exceptions import NotAuthenticated
 
 from projects.models import Project
 from tasks.api.v1 import filters, serializers, utils
@@ -13,6 +12,7 @@ from tasks.api.v1.mail import Mail
 from tasks.models import Task
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 from todo.viewsets import StandardPaginationViewSet
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,101 +33,75 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedById]
 
     def get_queryset(self) -> QuerySet[Task]:
-        if self.request.user:
-            user_id = self.request.user
-        else:
-            raise NotAuthenticated("User is not authenticated.")
-        return Task.objects.filter(user_id=user_id)
+        return Task.objects.filter(user_id=self.request.user)
 
-    def retrieve(self, request, pk=None) -> response.Response:
-        instance = self.get_object()
-        return response.Response(
-            self.serializer_class(instance).data, status=status.HTTP_200_OK
-        )
+    def retrieve(self, *args, **kwargs) -> response.Response:
+        task = self.get_object()
+        serializer = self.serializer_class(task)
+        return response.Response(serializer.data, status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs) -> response.Response:
-        user, data = request.user, request.data
+        user_id, request_data = request.user, request.data
 
-        if data.get("user_id"):
-            mail_of_recipient = async_to_sync(utils.get_email_of_user)(user)
-
+        if request_data.get("user_id"):
+            recipient_email = async_to_sync(utils.get_email_of_user)(user_id)
             mail = Mail(
-                recipient=mail_of_recipient,
-                subject="U was invited to task. Hurry up!",
+                recipient=recipient_email,
+                subject="You were invited to a task. Please respond promptly!",
             )
             async_to_sync(mail.send_invitation_email)(
-                task=data.get("title"),
-                project=Project.objects.get(id=data.get("project")),
+                task=request_data.get("title"),
+                project=Project.objects.get(id=request_data.get("project")),
             )
         else:
-            data.update({"user_id": user})
+            request_data["user_id"] = user_id
 
-        logger.info("Creating task for user %s", user)
+        logger.info("Creating task for user %s", user_id)
+        serializer = self.serializer_class(data=request_data)
 
-        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()
             return response.Response(
                 data=serializer.data, status=status.HTTP_201_CREATED
             )
-        else:
-            return response.Response(
-                data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-
-    def partial_update(self, request, pk=None, *args, **kwargs) -> response.Response:
-        user = self.request.user
-        instance = self.get_object()
-        instance.user_id = user
-
-        data = request.data
-
-        logger.info(
-            "Changing task with title: %s",
-            data.get('title', 'No title provided')
+        return response.Response(
+            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
 
-        if "status" in data:
-            if data["status"] != instance.status:
-                logger.info(
-                    "Status of task '%s' changed from %s to %s",
-                    instance.title,
-                    instance.status,
-                    data['status']
-                )
-                if instance.notification:
-                    mail_of_recipient = async_to_sync(utils.get_email_of_user)(user)
-                    mail = Mail(
-                        recipient=mail_of_recipient,
-                        subject="Status of task changed. Hurry up!",
-                    )
-                    async_to_sync(mail.send_email_notification)(
-                        title_of_task=data["title"]
-                    )
+    def partial_update(self, request, *args, **kwargs) -> response.Response:
+        user = self.request.user
+        task = self.get_object()
+        task.user_id = user
 
         serializer = self.serializer_class(
-            instance=instance, data=data, context={"author": user}, partial=True
+            instance=task, data=request.data, context={"author": user}, partial=True
         )
 
         if serializer.is_valid():
-            logger.info("Valid data: %s", serializer.validated_data)
+            if "status" in serializer.validated_data:
+                old_status = task.status
+                new_status = serializer.validated_data["status"]
+                if old_status != new_status:
+                    if task.notification:
+                        mail = Mail(
+                            recipient=async_to_sync(utils.get_email_of_user)(user),
+                            subject="Status of task changed. Hurry up!",
+                        )
+                        async_to_sync(mail.send_email_notification)(
+                            title_of_task=serializer.validated_data["title"]
+                        )
             serializer.save()
             return response.Response(data=serializer.data, status=status.HTTP_200_OK)
-        else:
-            logger.error("Invalid data: %s", serializer.errors)
-            return response.Response(
-                data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+        logger.error("Invalid data: %s", serializer.errors)
+        return response.Response(
+            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
-    def destroy(self, request, pk=None, *args, **kwargs) -> response.Response:
-        instance = self.get_object()
-        if self.request.user == instance.user_id:
-            super(TaskViewSet, self).destroy(request, pk, *args, **kwargs)
-            return response.Response(
-                data="Task was successfully deleted", status=status.HTTP_204_NO_CONTENT
-            )
-        else:
-            return response.Response(
-                data="Permission to task was denied",
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
+    def destroy(self, request, *args, **kwargs) -> response.Response:
+        task = self.get_object()
+        if request.user == task.user_id:
+            super().destroy(request, *args, **kwargs)
+            return response.Response(status=status.HTTP_204_NO_CONTENT)
+        return response.Response(
+            data="Permission denied", status=status.HTTP_403_FORBIDDEN
+        )

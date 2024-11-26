@@ -62,7 +62,7 @@ CACHES = {
 
 CELERY_BEAT_SCHEDULE = {
     "check_deadlines_and_notify": {
-        "task": "tasks.api.v1.workers.check_deadlines_and_notify",
+        "task": "tasks.api.v1.workers.check_deadlines_and_notify_user",
         "schedule": crontab(minute="*/2"),
     },
 }

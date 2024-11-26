@@ -1,8 +1,4 @@
-import os
-
-import jwt
 from dotenv import load_dotenv
-from rest_framework import authentication, exceptions, permissions
 from rest_framework.pagination import PageNumberPagination
 
 load_dotenv()
