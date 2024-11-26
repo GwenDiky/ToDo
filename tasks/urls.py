@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from tasks.viewsets import TaskViewSet
 
-app_name = "tasks"
+APP_NAME = "tasks"
 
 router = DefaultRouter()
 router.register(r"tasks", TaskViewSet)

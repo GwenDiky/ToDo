@@ -62,7 +62,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         else:
             data.update({"user_id": user})
 
-        logger.info(f"Creating task for user {user}")
+        logger.info("Creating task for user %s", user)
 
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
@@ -83,13 +83,17 @@ class TaskViewSet(viewsets.ModelViewSet):
         data = request.data
 
         logger.info(
-            f"Changing task with title: {data.get('title', 'No title provided')}"
+            "Changing task with title: %s",
+            data.get('title', 'No title provided')
         )
 
         if "status" in data:
             if data["status"] != instance.status:
                 logger.info(
-                    f"Status of task '{instance.title}' changed from {instance.status} to {data['status']}"
+                    "Status of task '%s' changed from %s to %s",
+                    instance.title,
+                    instance.status,
+                    data['status']
                 )
                 if instance.notification:
                     mail_of_recipient = async_to_sync(utils.get_email_of_user)(user)
@@ -106,11 +110,11 @@ class TaskViewSet(viewsets.ModelViewSet):
         )
 
         if serializer.is_valid():
-            logger.info(f"Valid data: {serializer.validated_data}")
+            logger.info("Valid data: %s", serializer.validated_data)
             serializer.save()
             return response.Response(data=serializer.data, status=status.HTTP_200_OK)
         else:
-            logger.error(f"Invalid data: {serializer.errors}")
+            logger.error("Invalid data: %s", serializer.errors)
             return response.Response(
                 data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )

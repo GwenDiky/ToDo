@@ -44,10 +44,10 @@ class Mail:
                 response = await self.ses_client.verify_email_identity(
                     EmailAddress=self.sender
                 )
-                logger.info(f"Sender {self.sender} verified: {response}")
+                logger.info("Sender %s verified: %s", self.sender, response)
                 self._is_sender_verified = True
             except exceptions.EmailVerificationFailedException as e:
-                logger.error(f"Error verifying sender: {e.detail}")
+                logger.error("Error verifying sender: %s", e.detail)
                 return e.as_response()
 
     async def send_email_notification(self, title_of_task: str = None, template=None):
@@ -70,11 +70,11 @@ class Mail:
                     "Body": {"Html": {"Data": template, "Charset": "UTF-8"}},
                 },
             )
-            logger.info(f"Email successfully sent to {self.recipient}")
+            logger.info("Email successfully sent to %s", self.recipient)
             return response
 
         except exceptions.EmailSendingFailedException as e:
-            logger.error(f"Failed to send email: {e.detail}")
+            logger.error("Failed to send email: %s", e.detail)
             return e.as_response()
 
         finally:
@@ -82,7 +82,11 @@ class Mail:
                 await self.ses_client.close()
 
     async def send_invitation_email(self, task: Task, project: Project):
-        logger.info(f"Preparing to send email from {self.sender} to {self.recipient}")
+        logger.info(
+            "Preparing to send email from %s to %s",
+            self.sender,
+            self.recipient
+        )
 
         self.template = get_template("html/invitation.html")
         template = self.template.render(

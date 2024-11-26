@@ -39,7 +39,7 @@ def check_deadlines_and_notify():
     tasks = async_to_sync(get_tasks_to_notify)(current_time)
 
     task_count = async_to_sync(count_tasks)(tasks)
-    logger.info(f"{task_count} issues were found that need to be notified")
+    logger.info("%s issues were found that need to be notified", task_count)
 
     for task in tasks:
         mail_of_recipient = async_to_sync(get_email_of_user)(task.user_id)
@@ -54,5 +54,7 @@ def check_deadlines_and_notify():
         async_to_sync(save_task)(task)
 
         logger.info(
-            f"User with id '{task.user_id}' was notified about the task '{task.title}'"
+            f"User with id '%s' was notified about the task '%s'",
+            task.user_id,
+            task.title,
         )

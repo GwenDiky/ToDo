@@ -6,4 +6,4 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
-        return self.title
+        return self.title if self.title else "Untitled Project"
