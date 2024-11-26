@@ -1,4 +1,5 @@
 from django.db import models
+
 from projects.models import Project
 from tasks.api.v1.validators import validate_user_exists
 

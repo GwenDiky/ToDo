@@ -3,9 +3,10 @@ import os
 
 import aioboto3
 from django.template.loader import get_template
+
 from projects.models import Project
-from tasks.models import Task
 from tasks.api.v1 import exceptions
+from tasks.models import Task
 
 logger = logging.getLogger(__name__)
 

@@ -2,9 +2,10 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from projects.urls import router as projects_router
 from rest_framework.permissions import AllowAny
 from rest_framework.routers import DefaultRouter
+
+from projects.urls import router as projects_router
 from tasks.urls import router as tasks_router
 
 swagger_view = get_schema_view(

@@ -1,12 +1,14 @@
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters as drf_filters
+from rest_framework import viewsets
+from rest_framework.exceptions import NotAuthenticated
+
 from projects.api.v1 import filters
 from projects.models import Project
-from rest_framework import viewsets, filters as drf_filters
-from rest_framework.exceptions import NotAuthenticated
 from tasks.api.v1 import serializers
-from todo.viewsets import StandardPaginationViewSet
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
+from todo.viewsets import StandardPaginationViewSet
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

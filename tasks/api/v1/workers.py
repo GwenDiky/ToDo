@@ -1,13 +1,13 @@
 import logging
 from datetime import timedelta
 
-from asgiref.sync import sync_to_async, async_to_sync
+from asgiref.sync import async_to_sync, sync_to_async
+from celery import shared_task
 from django.utils import timezone
+
 from tasks.api.v1.mail import Mail
 from tasks.api.v1.utils import get_email_of_user
 from tasks.models import Task
-
-from celery import shared_task
 
 logger = logging.getLogger(__name__)
 

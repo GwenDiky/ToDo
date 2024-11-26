@@ -1,5 +1,6 @@
-from projects.viewsets import ProjectViewSet
 from rest_framework.routers import DefaultRouter
+
+from projects.viewsets import ProjectViewSet
 
 app_name = "projects"
 

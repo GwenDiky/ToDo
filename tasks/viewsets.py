@@ -3,14 +3,16 @@ import logging
 from asgiref.sync import async_to_sync
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from projects.models import Project
-from rest_framework import viewsets, status, response, filters as drf_filters
+from rest_framework import filters as drf_filters
+from rest_framework import response, status, viewsets
 from rest_framework.exceptions import NotAuthenticated
-from tasks.api.v1 import serializers, utils, filters
+
+from projects.models import Project
+from tasks.api.v1 import filters, serializers, utils
 from tasks.api.v1.mail import Mail
 from tasks.models import Task
-from todo.viewsets import StandardPaginationViewSet
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
+from todo.viewsets import StandardPaginationViewSet
 
 logger = logging.getLogger(__name__)
 
