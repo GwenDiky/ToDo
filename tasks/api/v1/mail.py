@@ -3,9 +3,9 @@ import os
 
 import aioboto3
 from django.template.loader import get_template
-
-from tasks.models import Task
 from projects.models import Project
+from tasks.models import Task
+from tasks.api.v1 import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,11 @@ class Mail:
         if not self.ses_client:
             session = aioboto3.Session()
             async with session.client(
-                "ses",
-                aws_access_key_id=self.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
-                region_name=self.AWS_REGION_NAME,
-                endpoint_url=self.LOCALSTACK_ENDPOINT,
+                    "ses",
+                    aws_access_key_id=self.AWS_ACCESS_KEY_ID,
+                    aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
+                    region_name=self.AWS_REGION_NAME,
+                    endpoint_url=self.LOCALSTACK_ENDPOINT,
             ) as client:
                 self.ses_client = client
 
@@ -45,12 +45,13 @@ class Mail:
                 )
                 logger.info(f"Sender {self.sender} verified: {response}")
                 self._is_sender_verified = True
-            except Exception as e:
-                logger.error(f"Error verifying sender: {e}")
+            except exceptions.EmailVerificationFailedException as e:
+                logger.error(f"Error verifying sender: {e.detail}")
+                return e.as_response()
 
     async def send_email_notification(self, title_of_task: str = None,
-                                      template =
-        None):
+                                      template=
+                                      None):
         logger.info(
             f"Preparing to send email from {self.sender} to {self.recipient}")
 
@@ -73,9 +74,9 @@ class Mail:
             logger.info(f"Email successfully sent to {self.recipient}")
             return response
 
-        except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}") # прописать
-            # кастомную ошибку
+        except exceptions.EmailSendingFailedException as e:
+            logger.error(f"Failed to send email: {e.detail}")
+            return e.as_response()
 
         finally:
             if self.ses_client:

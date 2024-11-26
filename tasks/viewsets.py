@@ -3,16 +3,14 @@ import logging
 from asgiref.sync import async_to_sync
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
+from projects.models import Project
 from rest_framework import (viewsets, status, response, filters as drf_filters)
 from rest_framework.exceptions import NotAuthenticated
 from tasks.api.v1 import serializers, utils, filters
 from tasks.api.v1.mail import Mail
 from tasks.models import Task
-from projects.models import Project
-from todo.viewsets import (StandardPaginationViewSet, IsAuthenticatedById,
-                           JWTAuthenticationCustom)
-from asgiref.sync import async_to_sync
-from rest_framework.decorators import api_view
+from todo.viewsets import StandardPaginationViewSet
+from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +44,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                                  status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs) -> response.Response:
-        user = request.user
-        data = request.data
+        user, data = request.user, request.data
 
         if data.get("user_id"):
             mail_of_recipient = async_to_sync(utils.get_email_of_user)(
@@ -61,9 +58,12 @@ class TaskViewSet(viewsets.ModelViewSet):
                 task=data.get("title"),
                 project=Project.objects.get(id=data.get("project"))
             )
-        else: data.update({"user_id": user})
+        else:
+            data.update({"user_id": user})
 
         logger.info(f"Creating task for user {user}")
+
+
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save()

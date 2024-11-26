@@ -9,6 +9,7 @@ from celery import Celery
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "todo.settings")
 
 import django
+
 django.setup()
 
 app = Celery("basicSetup")

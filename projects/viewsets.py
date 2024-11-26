@@ -1,18 +1,12 @@
-from django.shortcuts import render
-from projects.models import Project
-from projects.api.v1 import serializers
-from projects.models import Project
-
-from asgiref.sync import async_to_sync
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (viewsets, status, filters as drf_filters)
-from rest_framework.exceptions import NotAuthenticated
-from tasks.api.v1 import serializers, filters
-from tasks.models import Task
-from todo.viewsets import (StandardPaginationViewSet, IsAuthenticatedById,
-                           JWTAuthenticationCustom)
 from projects.api.v1 import filters
+from projects.models import Project
+from rest_framework import (viewsets, filters as drf_filters)
+from rest_framework.exceptions import NotAuthenticated
+from tasks.api.v1 import serializers
+from todo.viewsets import StandardPaginationViewSet
+from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

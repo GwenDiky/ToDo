@@ -1,13 +1,6 @@
-from rest_framework import serializers
-
-from tasks.models import Task
 from projects.models import Project
-
-
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ["id", "title"]
+from rest_framework import serializers
+from tasks.models import Task
 
 class TaskSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(

@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.urls import include, path
-from tasks.urls import router as tasks_router
-from projects.urls import router as projects_router
-from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from projects.urls import router as projects_router
 from rest_framework.permissions import AllowAny
 from rest_framework.routers import DefaultRouter
-
+from tasks.urls import router as tasks_router
 
 swagger_view = get_schema_view(
     openapi.Info(
@@ -29,5 +28,6 @@ main_router.registry.extend(projects_router.registry)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(main_router.urls)),
-    path('swagger/', swagger_view.with_ui('swagger', cache_timeout=0), name='swagger-docs'),
+    path('swagger/', swagger_view.with_ui('swagger', cache_timeout=0),
+         name='swagger-docs'),
 ]

@@ -1,13 +1,16 @@
-from celery import shared_task
+import logging
+from datetime import timedelta
+
+from asgiref.sync import sync_to_async, async_to_sync
+from django.utils import timezone
 from tasks.api.v1.mail import Mail
 from tasks.api.v1.utils import get_email_of_user
 from tasks.models import Task
-from datetime import timedelta
-from asgiref.sync import sync_to_async, async_to_sync
-from django.utils import timezone
-import logging
+
+from celery import shared_task
 
 logger = logging.getLogger(__name__)
+
 
 @sync_to_async
 def get_tasks_to_notify(current_time):
