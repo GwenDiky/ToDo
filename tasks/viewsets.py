@@ -13,7 +13,6 @@ from tasks.models import Task
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 from todo.viewsets import StandardPaginationViewSet
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +73,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.user_id = user
 
         serializer = self.serializer_class(
-            instance=task, data=request.data, context={"author": user}, partial=True
+            instance=task,
+            data=request.data,
+            context={"author": user},
+            partial=True,
         )
 
         if serializer.is_valid():
@@ -84,14 +86,18 @@ class TaskViewSet(viewsets.ModelViewSet):
                 if old_status != new_status:
                     if task.notification:
                         mail = Mail(
-                            recipient=async_to_sync(utils.get_email_of_user)(user),
+                            recipient=async_to_sync(utils.get_email_of_user)(
+                                user
+                            ),
                             subject="Status of task changed. Hurry up!",
                         )
                         async_to_sync(mail.send_email_notification)(
                             title_of_task=serializer.validated_data["title"]
                         )
             serializer.save()
-            return response.Response(data=serializer.data, status=status.HTTP_200_OK)
+            return response.Response(
+                data=serializer.data, status=status.HTTP_200_OK
+            )
         logger.error("Invalid data: %s", serializer.errors)
         return response.Response(
             data=serializer.errors, status=status.HTTP_400_BAD_REQUEST

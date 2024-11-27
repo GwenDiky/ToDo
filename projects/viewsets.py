@@ -25,4 +25,5 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet[Project]:
         return Project.objects.filter(
-            tasks__user_id=self.request.user).distinct()
+            tasks__user_id=self.request.user
+        ).distinct()

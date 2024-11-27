@@ -1,46 +1,46 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.4.0
+    rev: v5.0.0
     hooks:
-      - id: end-of-file-fixer # wrap at end of file
+      - id: end-of-file-fixer  # Ensures files end with a newline
       - id: check-added-large-files
       - id: check-byte-order-marker
       - id: detect-private-key
       - id: check-ast
+
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
-      - language_version: python3.12.1
-      - description: "Black: The uncompromising Python code formatter"
-      - minimum_pre_commit_version: 2.9.2
+        args: ["--line-length=79"]
+        language_version: python3.12
+
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.0
+    rev: 5.13.2
     hooks:
       - id: isort
-      - name: isort
-      - language: python
-      - description: 'Sort imports'
-  - repo: https://github.com/python/mypy
-    rev: v1.11.2
+        language_version: python3.12
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
     hooks:
       - id: mypy
-      - name: mypy
-      - description: 'Type checkers help ensure that you’re using variables and functions in your code correctly'
-      - language: python
+        args:
+          - --explicit-package-bases
+        language_version: python3.12
+
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.1
     hooks:
       - id: flake8
+        args: ["--max-line-length=79"]
         additional_dependencies:
           - flake8-bugbear
-      - name: flake8
-      - description: 'flake8` is a command-line utility for enforcing style consistency across Python projects.'
-      - language: python
+        language_version: python3.12
+
   - repo: https://github.com/pylint-dev/pylint
     rev: v3.3.1
     hooks:
       - id: pylint
-      - name: pylint
-      - description: 'It checks for errors, enforces a coding standard, looks for code smells, and can make suggestions about how the code could be refactored.'
-      - language: python
+        args: [--rcfile=.pylintrc]
+        language_version: python3.12

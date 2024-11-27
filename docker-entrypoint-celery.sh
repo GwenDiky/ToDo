@@ -13,4 +13,3 @@ source /todo/.venv/bin/activate
 
 echo "Starting celery worker..."
 celery -A todo worker -l info --concurrency 1 -E
-

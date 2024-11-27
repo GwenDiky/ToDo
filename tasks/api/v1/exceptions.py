@@ -3,15 +3,17 @@ from django.http import JsonResponse
 
 class EmailSendingFailedException(Exception):
     status_code = 500
-    default_detail = "Failed to send email due to an internal error."
-    default_headers = {}
+    default_detail: str = "Failed to send email due to an internal error."
+    default_headers: dict = {}
 
     def __init__(self, detail=None, headers=None):
         self.detail = detail or self.default_detail
         self.headers = headers or self.default_headers
 
     def as_response(self):
-        response = JsonResponse({"detail": self.detail}, status=self.status_code)
+        response = JsonResponse(
+            {"detail": self.detail}, status=self.status_code
+        )
         for key, value in self.headers.items():
             response[key] = value
         return response
@@ -19,8 +21,8 @@ class EmailSendingFailedException(Exception):
 
 class EmailVerificationFailedException(Exception):
     status_code = 400
-    default_detail = "Email verification failed."
-    default_headers = {}
+    default_detail: str = "Email verification failed."
+    default_headers: dict = {}
 
     def __init__(self, sender_email=None, detail=None, headers=None):
         self.sender_email = sender_email
@@ -30,7 +32,9 @@ class EmailVerificationFailedException(Exception):
         self.headers = headers or self.default_headers
 
     def as_response(self):
-        response = JsonResponse({"detail": self.detail}, status=self.status_code)
+        response = JsonResponse(
+            {"detail": self.detail}, status=self.status_code
+        )
         for key, value in self.headers.items():
             response[key] = value
         return response

@@ -16,9 +16,12 @@ logger = logging.getLogger(__name__)
 def get_tasks_to_notify(current_time):
     one_hour_from_now = current_time + timedelta(hours=1)
     return Task.objects.filter(
-        is_notified=False, notification=True, deadline__lte=one_hour_from_now,
-        deadline__gt=current_time
+        is_notified=False,
+        notification=True,
+        deadline__lte=one_hour_from_now,
+        deadline__gt=current_time,
     ).exclude(status="done")
+
 
 @sync_to_async
 def update_task(task_instance):
@@ -42,8 +45,12 @@ def check_deadlines_and_notify_user():
 
     for task in tasks:
         recipient_email = async_to_sync(get_email_of_user)(task.user_id)
-        notification = Mail(recipient=recipient_email, subject="Task deadline approaching")
-        async_to_sync(notification.send_email_notification)(title_of_task=task.title)
+        notification = Mail(
+            recipient=recipient_email, subject="Task deadline approaching"
+        )
+        async_to_sync(notification.send_email_notification)(
+            title_of_task=task.title
+        )
 
         async_to_sync(update_task)(task)
 

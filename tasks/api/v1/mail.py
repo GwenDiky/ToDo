@@ -52,13 +52,20 @@ class Mail:
             logger.error("Failed to verify sender: %s", error.detail)
             return error.as_response()
 
-    async def send_email_notification(self, task_title: str = None, email_template=None):
+    async def send_email_notification(
+        self, task_title: str | None = None, email_template=None
+    ):
 
-        logger.info("Preparing to send email from %s to %s", self.sender,
-                    self.recipient)
+        logger.info(
+            "Preparing to send email from %s to %s",
+            self.sender,
+            self.recipient,
+        )
 
         if not email_template:
-            email_template = self.template.render({"task": task_title} if task_title else None)
+            email_template = self.template.render(
+                {"task": task_title} if task_title else None
+            )
 
         try:
             await self.init_ses_client()
@@ -70,7 +77,9 @@ class Mail:
                 Destination={"ToAddresses": [self.recipient]},
                 Message={
                     "Subject": {"Data": self.subject, "Charset": "UTF-8"},
-                    "Body": {"Html": {"Data": email_template, "Charset": "UTF-8"}},
+                    "Body": {
+                        "Html": {"Data": email_template, "Charset": "UTF-8"}
+                    },
                 },
             )
             logger.info("Email successfully sent to %s", self.recipient)
@@ -84,12 +93,11 @@ class Mail:
             if self.ses_client:
                 await self.ses_client.close()
 
-
     async def send_invitation_email(self, task: Task, project: Project):
         logger.info(
             "Preparing to send email from %s to %s",
             self.sender,
-            self.recipient
+            self.recipient,
         )
         self.template = get_template("html/invitation.html")
         context = {
