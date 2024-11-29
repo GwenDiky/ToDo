@@ -15,20 +15,22 @@ ALLOWED_HOSTS: list[str] = []
 
 
 INSTALLED_APPS = [
+    # django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "tasks",
-    "projects",
     # 3d party apps
     "rest_framework",
     "django_filters",
     "django_extensions",
     "django_celery_beat",
     "drf_yasg",
+    # local
+    "tasks",
+    "projects",
 ]
 
 MIDDLEWARE = [
