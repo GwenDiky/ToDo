@@ -10,7 +10,7 @@ from todo.viewsets import StandardPaginationViewSet
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all().order_by("-created_at")
+    queryset = Project.objects.all().order_by("-pk")
     serializer_class = serializers.ProjectSerializer
     lookup_field = "id"
     pagination_class = StandardPaginationViewSet
