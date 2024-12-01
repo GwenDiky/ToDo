@@ -206,3 +206,5 @@ LOGGING = {
         },
     },
 }
+
+API_URL = os.getenv("USERS_API_URL")

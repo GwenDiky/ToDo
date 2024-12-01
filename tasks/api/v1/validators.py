@@ -1,20 +1,21 @@
+import httpx
+from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import connections
+
+API_URL = settings.API_URL
 
 
 def validate_user_exists(user_id: str) -> None:
-    with connections["user_db"].cursor() as cursor:
-        cursor.execute("SELECT id FROM users WHERE id = %s", [user_id])
-        if not cursor.fetchone():
-            raise ValidationError(f"User with id {user_id} doesn't exist.")
+    with httpx.Client() as client:
+        response = client.get(f"{API_URL}/{user_id}")
+        if response.status_code != 200:
+            raise ValidationError("User with such id doesn't exist.")
+        return response.json()
 
 
 def validate_if_superuser(user_id: str) -> bool:
-    with connections["user_db"].cursor() as cursor:
-        cursor.execute(
-            "SELECT is_superuser FROM users WHERE id = %s", [user_id]
-        )
-        result = cursor.fetchone()
-        if result is None:
-            raise ValidationError(f"User with id {user_id} doesn't exist.")
-        return result[0]
+    with httpx.Client() as client:
+        response = client.get(f"{API_URL}/{user_id}/is-superuser")
+        if response.status_code == 200:
+            return response.json()
+        raise ValidationError("Requested user isn't a superuser")
