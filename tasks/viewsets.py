@@ -34,11 +34,6 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet[Task]:
         return Task.objects.filter(user_id=self.request.user)
 
-    def retrieve(self, *args, **kwargs) -> response.Response:
-        task = self.get_object()
-        serializer = self.serializer_class(task)
-        return response.Response(serializer.data, status.HTTP_200_OK)
-
     def create(self, request, *args, **kwargs) -> response.Response:
         user_id, request_data = request.user, request.data
 
