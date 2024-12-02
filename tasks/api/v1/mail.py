@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class Mail:
     sender = settings.EMAIL_HOST_USER
-    AWS_ACCESS_KEY_ID = settings.WS_ACCESS_KEY_ID
+    AWS_ACCESS_KEY_ID = settings.AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
     AWS_REGION_NAME = settings.AWS_REGION_NAME
     LOCALSTACK_ENDPOINT = settings.LOCALSTACK_ENDPOINT

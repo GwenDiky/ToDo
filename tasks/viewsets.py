@@ -4,7 +4,7 @@ from asgiref.sync import async_to_sync
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters as drf_filters
-from rest_framework import response, status, viewsets
+from rest_framework import mixins, response, status, viewsets
 
 from projects.models import Project
 from tasks.api.v1 import filters, serializers, utils
@@ -15,25 +15,15 @@ from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 logger = logging.getLogger(__name__)
 
 
-class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all().order_by("-pk")
-
-    serializer_class = serializers.TaskSerializer
-
-    filter_backends = (DjangoFilterBackend, drf_filters.OrderingFilter)
-
-    filterset_class = filters.FilterTasks
-    ordering = ["created_at"]
-    ordering_fields = ["title", "created_at"]
-
-    authentication_classes = [JWTAuthenticationCustom]
-    permission_classes = [IsAuthenticatedById]
+class TaskListMixin(mixins.ListModelMixin):
 
     def get_queryset(self) -> QuerySet[Task]:
         return Task.objects.filter(user_id=self.request.user)
 
-    def create(self, request, *args, **kwargs) -> response.Response:
-        user_id, request_data = request.user, request.data
+
+class TaskCreateMixin(mixins.CreateModelMixin):
+    def perform_create(self, serializer):
+        user_id, request_data = self.request.user, self.request.data
 
         if request_data.get("user_id"):
             recipient_email = async_to_sync(utils.get_email_of_user)(user_id)
@@ -52,20 +42,23 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request_data)
 
         if serializer.is_valid():
-            serializer.save()
+            task = serializer.save()
+            logger.info("Task created successfully: %s", task)
             return response.Response(
                 data=serializer.data, status=status.HTTP_201_CREATED
             )
+        logger.error("Serializer errors: %s", serializer.errors)
         return response.Response(
             data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
 
+
+class TaskUpdateMixin(mixins.UpdateModelMixin):
     def partial_update(self, request, *args, **kwargs) -> response.Response:
         user = self.request.user
         task = self.get_object()
-        task.user_id = user
 
-        serializer = self.serializer_class(
+        serializer = serializers.TaskUpdateSerializer(
             instance=task,
             data=request.data,
             context={"author": user},
@@ -85,18 +78,20 @@ class TaskViewSet(viewsets.ModelViewSet):
                             subject="Status of task changed. Hurry up!",
                         )
                         async_to_sync(mail.send_email_notification)(
-                            title_of_task=serializer.validated_data["title"]
+                            task_title=serializer.validated_data["title"]
                         )
             serializer.save()
             return response.Response(
                 data=serializer.data, status=status.HTTP_200_OK
             )
-        logger.error("Invalid data: %s", serializer.errors)
+
         return response.Response(
             data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
 
-    def perform_destroy(self, request, *args, **kwargs) -> response.Response:
+
+class TaskDestroyMixin(mixins.DestroyModelMixin):
+    def destroy(self, request, *args, **kwargs) -> response.Response:
         task = self.get_object()
         if request.user == task.user_id:
             super().destroy(request, *args, **kwargs)
@@ -104,3 +99,35 @@ class TaskViewSet(viewsets.ModelViewSet):
         return response.Response(
             data="Permission denied", status=status.HTTP_403_FORBIDDEN
         )
+
+
+class TaskViewSet(
+    viewsets.GenericViewSet,
+    TaskCreateMixin,
+    TaskListMixin,
+    TaskUpdateMixin,
+    TaskDestroyMixin,
+):
+    queryset = Task.objects.all().order_by("-pk")
+
+    serializer_class_map = {
+        "default": serializers.TaskSerializer,
+        "create": serializers.TaskCreateSerializer,
+        "update": serializers.TaskUpdateSerializer,
+        "partial_update": serializers.TaskUpdateSerializer,
+        "list": serializers.TaskListSerializer,
+    }
+
+    def get_serializer_class(self):
+        action = self.action
+        return self.serializer_class_map.get(
+            action, self.serializer_class_map["default"]
+        )
+
+    filter_backends = (DjangoFilterBackend, drf_filters.OrderingFilter)
+    filterset_class = filters.FilterTasks
+    ordering = ["created_at"]
+    ordering_fields = ["title", "created_at"]
+
+    authentication_classes = [JWTAuthenticationCustom]
+    permission_classes = [IsAuthenticatedById]
