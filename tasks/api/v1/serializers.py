@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from projects.api.v1.serializers import ProjectSerializer
@@ -25,10 +27,24 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         model = Task
         exclude = ["id", "is_notified", "created_at", "updated_at"]
 
-    def validate(self, attrs):
+    def validate_status(self, attrs):
         if attrs.get("status") not in STATUS_CHOICES:
             raise serializers.ValidationError("Invalid priority value.")
         return attrs
+
+    def validate_body(self, value):
+        if len(value) < 10:
+            raise serializers.ValidationError(
+                "Body must be at least 10 characters long."
+            )
+        return value
+
+    def validate_deadline(self, value):
+        if value and value < datetime.now():
+            raise serializers.ValidationError(
+                "Deadline cannot be in the past."
+            )
+        return value
 
 
 class TaskListSerializer(serializers.ModelSerializer):
