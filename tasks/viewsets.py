@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class TaskListMixin(mixins.ListModelMixin):
-
     def get_queryset(self) -> QuerySet[Task]:
         return Task.objects.filter(user_id=self.request.user)
 
@@ -39,7 +38,7 @@ class TaskCreateMixin(mixins.CreateModelMixin):
             request_data["user_id"] = user_id
 
         logger.info("Creating task for user %s", user_id)
-        serializer = self.serializer_class(data=request_data)
+        serializer = self.get_serializer_class()(data=request_data)
 
         if serializer.is_valid():
             task = serializer.save()
@@ -120,9 +119,9 @@ class TaskViewSet(
 
     def get_serializer_class(self):
         action = self.action
-        return self.serializer_class_map.get(
-            action, self.serializer_class_map["default"]
-        )
+        if action in self.serializer_class_map:
+            return self.serializer_class_map[action]
+        return self.serializer_class_map["default"]
 
     filter_backends = (DjangoFilterBackend, drf_filters.OrderingFilter)
     filterset_class = filters.FilterTasks
