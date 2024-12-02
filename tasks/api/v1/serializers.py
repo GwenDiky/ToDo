@@ -26,8 +26,3 @@ class TaskSerializer(serializers.ModelSerializer):
             "project",
             "user_id",
         ]
-
-    def create(self, validated_data):
-        project = validated_data.pop("project", None)
-        task = Task.objects.create(**validated_data, project=project)
-        return task

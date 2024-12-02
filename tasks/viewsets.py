@@ -98,7 +98,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
 
-    def destroy(self, request, *args, **kwargs) -> response.Response:
+    def perform_destroy(self, request, *args, **kwargs) -> response.Response:
         task = self.get_object()
         if request.user == task.user_id:
             super().destroy(request, *args, **kwargs)
