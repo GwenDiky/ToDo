@@ -6,9 +6,7 @@ from tasks.models import Task
 
 class FilterTasks(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains")
-    status = django_filters.ChoiceFilter(
-        choices=STATUS_CHOICES, lookup_expr="exact"
-    )
+    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES)
 
     class Meta:
         model = Task

@@ -1,7 +1,7 @@
 import logging
-import os
 
 import aioboto3
+from django.conf import settings
 from django.template.loader import get_template
 
 from projects.models import Project
@@ -12,11 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Mail:
-    sender = os.getenv("EMAIL_HOST_USER")
-    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
-    LOCALSTACK_ENDPOINT = os.getenv("LOCALSTACK_ENDPOINT")
+    sender = settings.EMAIL_HOST_USER
+    AWS_ACCESS_KEY_ID = settings.WS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY = settings.AWS_SECRET_ACCESS_KEY
+    AWS_REGION_NAME = settings.AWS_REGION_NAME
+    LOCALSTACK_ENDPOINT = settings.LOCALSTACK_ENDPOINT
 
     def __init__(self, recipient, subject):
         self.recipient = recipient
