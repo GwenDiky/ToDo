@@ -21,7 +21,8 @@ class TaskSerializer(serializers.ModelSerializer):
             "body",
             "status",
             "deadline",
-            "notification",
+            "is_subscribed_deadlines",
+            "is_subscribed_status_changing",
             "project",
             "user_id",
         ]
