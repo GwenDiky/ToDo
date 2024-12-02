@@ -6,14 +6,12 @@ from rest_framework import viewsets
 from projects.api.v1 import filters, serializers
 from projects.models import Project
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
-from todo.viewsets import StandardPaginationViewSet
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by("-pk")
     serializer_class = serializers.ProjectSerializer
     lookup_field = "id"
-    pagination_class = StandardPaginationViewSet
 
     filter_backends = (DjangoFilterBackend, drf_filters.OrderingFilter)
 

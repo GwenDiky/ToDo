@@ -11,7 +11,6 @@ from tasks.api.v1 import filters, serializers, utils
 from tasks.api.v1.mail import Mail
 from tasks.models import Task
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
-from todo.viewsets import StandardPaginationViewSet
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,6 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     filterset_class = filters.FilterTasks
     ordering = ["created_at"]
-    pagination_class = StandardPaginationViewSet
     ordering_fields = ["title", "created_at"]
 
     authentication_classes = [JWTAuthenticationCustom]
