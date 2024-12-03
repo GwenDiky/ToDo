@@ -6,9 +6,10 @@ class ApiException(Exception):
     default_detail: str = "An unexpected error occurred."
     default_headers: dict = {}
 
-    def __init__(self, detail=None, headers=None):
+    def __init__(self, detail=None, headers=None, status_code=None):
         self.detail = detail or self.default_detail
         self.headers = headers or self.default_headers
+        self.status_code = status_code or self.status_code
 
     def as_response(self):
         response = JsonResponse(
@@ -20,8 +21,18 @@ class ApiException(Exception):
 
 
 class EmailSendingFailedException(ApiException):
-    default_detail = "Failed to send email due to an internal error."
+    detail = "Failed to send email due to an internal error."
 
 
 class EmailVerificationFailedException(ApiException):
-    default_detail = "Email verification failed."
+    detail = "Email verification failed."
+
+
+class PermissionDeniedException(ApiException):
+    detail = "Permission denied."
+    status_code = 403
+
+
+class ValidationFailedException(ApiException):
+    detail = "Validation failed."
+    status_code = 400

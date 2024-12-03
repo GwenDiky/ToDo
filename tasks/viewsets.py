@@ -7,6 +7,7 @@ from rest_framework import filters as drf_filters
 from rest_framework import mixins, response, status, viewsets
 
 from projects.models import Project
+from tasks import exceptions
 from tasks.api.v1 import filters, serializers, utils
 from tasks.api.v1.mail import Mail
 from tasks.models import Task
@@ -47,9 +48,7 @@ class TaskCreateMixin(mixins.CreateModelMixin):
                 data=serializer.data, status=status.HTTP_201_CREATED
             )
         logger.error("Serializer errors: %s", serializer.errors)
-        return response.Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        assert exceptions.ValidationFailedException
 
 
 class TaskUpdateMixin(mixins.UpdateModelMixin):
@@ -83,10 +82,7 @@ class TaskUpdateMixin(mixins.UpdateModelMixin):
             return response.Response(
                 data=serializer.data, status=status.HTTP_200_OK
             )
-
-        return response.Response(
-            data=serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        assert exceptions.ValidationFailedException
 
 
 class TaskDestroyMixin(mixins.DestroyModelMixin):
@@ -95,9 +91,7 @@ class TaskDestroyMixin(mixins.DestroyModelMixin):
         if request.user == task.user_id:
             super().destroy(request, *args, **kwargs)
             return response.Response(status=status.HTTP_204_NO_CONTENT)
-        return response.Response(
-            data="Permission denied", status=status.HTTP_403_FORBIDDEN
-        )
+        assert exceptions.PermissionDeniedException
 
 
 class TaskViewSet(
