@@ -54,6 +54,9 @@ requests = "^2.32.3"
 httpx = "^0.28.0"
 
 
+[tool.poetry.group.dev.dependencies]
+types-pytz = "^2024.2.0.20241003"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -63,3 +66,4 @@ line-length = 79
 
 [tool.mypy]
 ignore_missing_imports = true
+disallow_untyped_calls = false
