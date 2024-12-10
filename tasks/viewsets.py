@@ -14,6 +14,8 @@ from tasks.api.v1.utils import extract_file_info
 from tasks.models import Task
 from todo.api.v1 import kafka_producer
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
+from todo.api.v1.kafka_event_sender import KafkaEventSender
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,58 +56,18 @@ class TaskCreateMixin(mixins.CreateModelMixin):
                     "file_type": file_type,
                     "file_url": task.attachment_url,
                 }
-                self.send_attachment_event(
+                KafkaEventSender.send_attachment_event(
                     event_type="upload_file", instance=file_instance
                 )
-            self.send_event(
+            KafkaEventSender.send_task_event(
                 event_type="task_created", instance=task, user_id=task.user_id
             )
             return response.Response(
                 data=serializer.data, status=status.HTTP_201_CREATED
             )
+
         logger.error("Serializer errors: %s", serializer.errors)
-        assert exceptions.ValidationFailedException
-
-    def send_attachment_event(self, event_type, instance):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="static",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "file_data": {
-                    "file_name": instance.get("file_name"),
-                    "file_type": instance.get("file_type"),
-                    "file_url": instance.get("file_url"),
-                },
-            },
-        )
-
-        logging.info(
-            "Sending event to Kafka 'upload_file' with url: %s",
-            instance.get("file_url"),
-        )
-
-    def send_event(self, event_type, instance, user_id):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="tasks",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "task_id": instance.id,
-                "task_data": {
-                    "id": instance.id,
-                    "status": instance.status,
-                    "project_id": instance.project.id,
-                    "user_id": user_id,
-                    "updated_at": instance.updated_at.isoformat(),
-                    "created_at": instance.created_at.isoformat(),
-                },
-            },
-        )
-        logging.info("Sending event to Kafka: %s", instance.user_id)
-
+        raise ValidationError(serializer.errors)
 
 class TaskUpdateMixin(mixins.UpdateModelMixin):
     def partial_update(self, request, *args, **kwargs) -> response.Response:
@@ -147,16 +109,16 @@ class TaskUpdateMixin(mixins.UpdateModelMixin):
                         "file_type": file_type,
                         "file_url": attachment_url,
                     }
-                    self.send_attachment_event(
+                    KafkaEventSender.send_attachment_event(
                         event_type="update_file", instance=file_instance
                     )
             elif task.attachment_url and not attachment_url:
-                self.send_attachment_event(
+                KafkaEventSender.send_attachment_event(
                     event_type="file_deleted",
                     instance={"file_url": task.attachment_url},
                 )
 
-            self.send_event(
+            KafkaEventSender.send_task_event(
                 event_type="task_updated", instance=task, user_id=task.user_id
             )
 
@@ -164,47 +126,7 @@ class TaskUpdateMixin(mixins.UpdateModelMixin):
                 data=serializer.data, status=status.HTTP_200_OK
             )
 
-        assert exceptions.ValidationFailedException
-
-    def send_event(self, event_type, instance, user_id):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="tasks",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "task_id": instance.id,
-                "task_data": {
-                    "id": instance.id,
-                    "status": instance.status,
-                    "project_id": instance.project.id,
-                    "user_id": user_id,
-                    "updated_at": instance.updated_at,
-                    "created_at": instance.created_at,
-                },
-            },
-        )
-
-    def send_attachment_event(self, event_type, instance):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="static",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "file_data": {
-                    "file_name": instance.get("file_name"),
-                    "file_type": instance.get("file_type"),
-                    "file_url": instance.get("file_url"),
-                },
-            },
-        )
-
-        logging.info(
-            "Sending event to Kafka 'update_file' with url: %s",
-            instance.get("file_url"),
-        )
-
+        raise ValidationError(serializer.errors)
 
 class TaskDestroyMixin(mixins.DestroyModelMixin):
     def destroy(self, request, *args, **kwargs) -> response.Response:
@@ -218,48 +140,12 @@ class TaskDestroyMixin(mixins.DestroyModelMixin):
                     "file_type": file_type,
                     "file_url": task.attachment_url,
                 }
-                self.send_attachment_event(
+                KafkaEventSender.send_attachment_event(
                     event_type="delete_file", instance=attachment_instance
                 )
-            self.send_event(event_type="task_deleted", instance=task)
+            KafkaEventSender.send_task_event(event_type="task_deleted", instance=task)
             return response.Response(status=status.HTTP_204_NO_CONTENT)
-        assert exceptions.PermissionDeniedException
-
-    def send_event(self, event_type, instance):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="tasks",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "task_id": instance.id,
-                "task_data": {
-                    "id": instance.id,
-                    "status": instance.status,
-                    "project_id": instance.project.id,
-                },
-            },
-        )
-
-    def send_attachment_event(self, event_type, instance):
-        producer = kafka_producer.KafkaProducer()
-        producer.send_event(
-            topic="static",
-            key=event_type,
-            value={
-                "event_type": event_type,
-                "file_data": {
-                    "file_name": instance.get("file_name"),
-                    "file_type": instance.get("file_type"),
-                    "file_url": instance.get("file_url"),
-                },
-            },
-        )
-
-        logging.info(
-            "Sending event to Kafka 'delete_file' with url: %s",
-            instance.get("file_url"),
-        )
+        raise exceptions.PermissionDeniedException
 
 
 class TaskViewSet(

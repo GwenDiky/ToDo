@@ -10,6 +10,7 @@ from projects.models import Project
 from tasks.api.v1.utils import extract_file_info
 from todo.api.v1 import kafka_producer
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
+from todo.api.v1.kafka_event_sender import KafkaEventSender
 
 from kafka.errors import KafkaError
 
@@ -64,19 +65,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 "file_type": file_type,
                 "file_url": project.attachment_url,
             }
-            producer = kafka_producer.KafkaProducer()
-            try:
-                producer.send_event(
-                    topic="static",
-                    key=event_type,
-                    value={
-                        "event_type": event_type,
-                        "file_data": file_instance,
-                    },
-                )
-                logger.info(
-                    f"Sent event '{event_type}' for file {project.attachment_url}"
-                )
-            except KafkaError as kafka_error:
-                logger.error("Kafka error occurred while sending event '%s': "
-                             "%s", event_type, kafka_error)
+            KafkaEventSender.send_attachment_event(
+                event_type=event_type, instance=file_instance
+            )
+            logger.info(
+                f"Sent event '{event_type}' for file {project.attachment_url}"
+            )
