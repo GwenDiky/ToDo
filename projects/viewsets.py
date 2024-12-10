@@ -7,7 +7,7 @@ from projects.api.v1 import filters, serializers
 from projects.models import Project
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 from todo.api.v1 import kafka_producer
-from todo.api.v1.utils import extract_file_info
+from tasks.api.v1.utils import extract_file_info
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

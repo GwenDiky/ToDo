@@ -2,6 +2,7 @@ from confluent_kafka import Producer
 import json
 from confluent_kafka import KafkaException
 from tasks import exceptions
+from todo import exceptions as kafka_exceptions
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,13 +21,24 @@ class KafkaProducer:
                 callback=self.delivery_report
             )
             self.producer.flush()
+
         except KafkaException as e:
-            logger.error("Error while sending event to Kafka: %s", e)
-            raise
+            logger.error(f"Error while sending event to Kafka: {e}")
+
+            if 'connection' in str(e).lower():
+                raise kafka_exceptions.KafkaConnectionError()
+
+            elif 'timed out' in str(e).lower():
+                raise kafka_exceptions.KafkaTimeoutError()
+
+            else:
+                raise kafka_exceptions.KafkaError()
 
     @staticmethod
     def delivery_report(err, msg):
         if err is not None:
-            raise exceptions.KafkaException
+            logger.error(f"Failed to deliver message: {err}")
+            raise kafka_exceptions.KafkaError()
         else:
-            logger.error(f"Message was successfully sent to {msg.topic()} [{msg.partition()}]")
+            logger.info(
+                f"Message successfully sent to {msg.topic()} [{msg.partition()}]")

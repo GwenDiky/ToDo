@@ -13,7 +13,7 @@ from tasks.api.v1.mail import Mail
 from tasks.models import Task
 from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 from todo.api.v1 import kafka_producer
-from todo.api.v1.utils import extract_file_info
+from tasks.api.v1.utils import extract_file_info
 
 logger = logging.getLogger(__name__)
 

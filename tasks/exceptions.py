@@ -40,3 +40,5 @@ class ValidationFailedException(ApiException):
 class KafkaException(ApiException):
     detail = "An error occurred while processing data in Kafka."
     status_code = 500
+
+
