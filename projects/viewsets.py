@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models.query import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters as drf_filters
@@ -5,10 +7,14 @@ from rest_framework import viewsets
 
 from projects.api.v1 import filters, serializers
 from projects.models import Project
-from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
-from todo.api.v1 import kafka_producer
 from tasks.api.v1.utils import extract_file_info
+from todo.api.v1 import kafka_producer
+from todo.jwt_auth import IsAuthenticatedById, JWTAuthenticationCustom
 
+from kafka.errors import KafkaError
+
+
+logger = logging.getLogger(__name__)
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all().order_by("-pk")
@@ -68,8 +74,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
                         "file_data": file_instance,
                     },
                 )
-                logging.info(
+                logger.info(
                     f"Sent event '{event_type}' for file {project.attachment_url}"
                 )
-            except Exception as e:
-                logging.error(f"Failed to send event '{event_type}': {e}")
+            except KafkaError as kafka_error:
+                logger.error("Kafka error occurred while sending event '%s': "
+                             "%s", event_type, kafka_error)
