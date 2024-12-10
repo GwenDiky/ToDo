@@ -1,9 +1,16 @@
-FROM python:3.11.10-bullseye
+FROM python:3.11-slim-bullseye
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -y netcat && apt-get clean
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    netcat \
+    libpq-dev \
+    gcc \
+    build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /usr/share/man /usr/share/doc /usr/share/locale
 
 RUN pip install poetry==1.8.2
 ENV POETRY_NO_INTERACTION=1 \
