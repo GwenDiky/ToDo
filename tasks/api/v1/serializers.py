@@ -6,7 +6,7 @@ from rest_framework import serializers
 from projects.api.v1.serializers import ProjectSerializer
 from projects.models import Project
 from tasks.api.v1.validators import validate_user_exists
-from tasks.enums import STATUS_CHOICES
+from tasks.enums import StatusChoices
 from tasks.models import Task
 
 
@@ -29,7 +29,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         exclude = ["id", "is_notified", "created_at", "updated_at"]
 
     def validate_status(self, value):
-        if value not in STATUS_CHOICES:
+        if value not in StatusChoices:
             raise serializers.ValidationError("Invalid priority value.")
         return value
 

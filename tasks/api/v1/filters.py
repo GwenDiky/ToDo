@@ -1,12 +1,12 @@
 import django_filters
 
-from tasks.enums import STATUS_CHOICES
+from tasks.enums import StatusChoices
 from tasks.models import Task
 
 
 class FilterTasks(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains")
-    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES)
+    status = django_filters.ChoiceFilter(choices=StatusChoices)
 
     class Meta:
         model = Task
