@@ -1,0 +1,16 @@
+*.log
+*.tmp
+.DS_Store
+node_modules/
+__pycache__/
+.pytest_cache/
+.vscode/
+.idea/
+postgres-data
+redis-data
+localstack-data
+.venv
+__pycache__
+*.pyc
+*.pyo
+.DS_Store
